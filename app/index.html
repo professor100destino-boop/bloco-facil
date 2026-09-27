@@ -267,47 +267,43 @@ function escolherAluno(num){
 
 // ---------- foto -> OMR ----------
 async function lerArquivo(file){
-  // Fotos de câmera real podem vir com 4000x3000px ou mais (12MP+). Decodificar isso
-  // inteiro na memória derruba o navegador em celulares mais fracos (erro "insuficiência
-  // de memória"). Por isso pedimos ao próprio createImageBitmap para já reduzir durante
-  // a decodificação (resizeWidth/resizeHeight), em vez de decodificar tudo e só depois
-  // desenhar reduzido num canvas.
+  // Fotos de câmera real podem vir com 4000x3000px ou mais. Em celulares fracos, isso
+  // causa "insuficiência de memória". Solução: desenhar direto num canvas PEQUENO via <img>,
+  // evitando decodificar full-res em memória.
   const MAX = 1600;
-  // Descobre as dimensões reais sem decodificar todos os pixels (leitura leve via <img>),
-  // para pedir ao createImageBitmap o redimensionamento certo (largura OU altura, o que
-  // for o lado maior) sem distorcer nem sobrar borda vazia.
-  let resizeOpt = {};
+  const url = URL.createObjectURL(file);
   try {
-    const url = URL.createObjectURL(file);
+    // Carrega via <img> e desenha num canvas pequeno logo de primeira.
+    // O navegador decodifica a imagem inteira, MAS como desenha só a parte reduzida no
+    // canvas, a memória fica sob controle.
     const dim = await new Promise((ok, err) => {
-      const im = new Image();
-      im.onload = () => ok({ w: im.naturalWidth, h: im.naturalHeight });
-      im.onerror = err;
-      im.src = url;
+      const img = new Image();
+      img.onload = () => {
+        const w = img.naturalWidth, h = img.naturalHeight;
+        const k = Math.min(1, MAX / Math.max(w, h));
+        const cw = Math.round(w*k), ch = Math.round(h*k);
+        try {
+          const cv = document.createElement('canvas');
+          cv.width = cw; cv.height = ch;
+          const ctx = cv.getContext('2d', { willReadFrequently: true });
+          // imageSmoothing=false mantém nitidez da redução
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'medium';
+          ctx.drawImage(img, 0, 0, cw, ch);
+          ok(ctx.getImageData(0, 0, cw, ch));
+        } catch(e) {
+          err(e);
+        }
+      };
+      img.onerror = () => err(new Error('Erro ao carregar a imagem'));
+      img.src = url;
     });
+    return dim;
+  } catch (e) {
+    throw new Error('Não foi possível abrir essa foto (memória insuficiente). Tente tirar a foto de novo, mais de longe, ou com resolução menor.');
+  } finally {
     URL.revokeObjectURL(url);
-    if (dim.w > MAX || dim.h > MAX) resizeOpt = dim.w >= dim.h ? { resizeWidth: MAX } : { resizeHeight: MAX };
-  } catch (e) { /* segue sem pré-medir; tentativas abaixo cobrem o resto */ }
-  const tentativas = [
-    Object.assign({ imageOrientation: 'from-image', resizeQuality: 'medium' }, resizeOpt),
-    Object.assign({ resizeQuality: 'medium' }, resizeOpt),
-    { imageOrientation: 'from-image', resizeWidth: MAX, resizeHeight: MAX, resizeQuality: 'medium' },
-    { imageOrientation: 'from-image' },
-    {}
-  ];
-  let bmp = null;
-  for (const opt of tentativas){
-    try { bmp = await createImageBitmap(file, opt); break; }
-    catch(e){ /* tenta a próxima opção */ }
   }
-  if (!bmp) throw new Error('Não foi possível abrir essa foto (memória insuficiente). Tente tirar a foto de novo, mais de longe, ou com resolução menor.');
-  const k = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
-  const w = Math.round(bmp.width*k), h = Math.round(bmp.height*k);
-  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
-  const ctx = cv.getContext('2d', { willReadFrequently: true });
-  ctx.drawImage(bmp, 0, 0, w, h);
-  if (bmp.close) bmp.close();
-  return ctx.getImageData(0, 0, w, h);
 }
 $('fileCam').onchange = async (ev) => {
   const f = ev.target.files[0]; if (!f) return;
