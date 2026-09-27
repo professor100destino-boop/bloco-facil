@@ -41,6 +41,8 @@
   .q b{width:24px;font-size:13px;color:var(--mut);text-align:right}
   .q span{width:22px;height:22px;border-radius:50%;border:1.5px solid #9ca3af;font-size:11px;display:flex;align-items:center;justify-content:center;color:#6b7280;cursor:pointer;user-select:none}
   .q span.on{background:#1e3a8a;border-color:#1e3a8a;color:#fff}
+  .q span.gab{box-shadow:0 0 0 2.5px #65a30d;border-color:#65a30d}
+  .q span.gab.on{box-shadow:0 0 0 2.5px #65a30d;background:#1e3a8a;border-color:#65a30d;color:#fff}
   .q.certo{background:#f0fdf4;border-color:#bbf7d0}
   .q.errado{background:#fef2f2;border-color:#fecaca}
   .q.alerta{background:#fffbeb;border-color:#f59e0b;box-shadow:0 0 0 1px #f59e0b}
@@ -130,7 +132,7 @@
     <h2 id="rNome"></h2>
     <div id="rMsg"></div>
     <div class="tot" id="rTot"></div>
-    <p class="mut">Confira. Questões em <b style="color:#b45309">amarelo</b> ficaram em branco, com duas marcas ou com leitura duvidosa. Toque numa letra para corrigir.</p>
+    <p class="mut">Confira. Questões em <b style="color:#b45309">amarelo</b> ficaram em branco, com duas marcas ou com leitura duvidosa. O contorno <b style="color:#65a30d">verde</b> mostra a resposta certa do gabarito. Toque numa letra para corrigir.</p>
     <div id="rGrid"></div>
   </div>
 </section>
@@ -328,9 +330,12 @@ $('fileCam').onchange = async (ev) => {
   }, 30);
 };
 
-function qCell(i, letra, cls, onpick){
+function qCell(i, letra, cls, onpick, correta){
   const div = document.createElement('div'); div.className = 'q ' + cls;
-  div.innerHTML = `<b>${String(i).padStart(2,'0')}</b>` + 'ABCD'.split('').map(L => `<span class="${L===letra?'on':''}" data-l="${L}">${L}</span>`).join('');
+  div.innerHTML = `<b>${String(i).padStart(2,'0')}</b>` + 'ABCD'.split('').map(L => {
+    const c = [L === letra ? 'on' : '', correta && L === correta ? 'gab' : ''].filter(Boolean).join(' ');
+    return `<span class="${c}" data-l="${L}">${L}</span>`;
+  }).join('');
   div.querySelectorAll('span').forEach(s => s.onclick = () => onpick(s.dataset.l === letra ? '-' : s.dataset.l));
   return div;
 }
@@ -344,7 +349,7 @@ function renderRev(){
     for (let i = d.de; i <= d.ate; i++){
       const a = ans[i-1] || '-', c = leitura.conf[i-1] ?? 1;
       const cls = (a === '-' || a === '*' || c < 0.35) ? 'alerta' : (a === T.gab.key[i-1] ? 'certo' : 'errado');
-      grid.appendChild(qCell(i, a, cls, L => { leitura.ans[i-1] = L; leitura.conf[i-1] = 1; renderRev(); }));
+      grid.appendChild(qCell(i, a, cls, L => { leitura.ans[i-1] = L; leitura.conf[i-1] = 1; renderRev(); }, T.gab.key[i-1]));
     }
     g.appendChild(grid);
   }
