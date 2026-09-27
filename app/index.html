@@ -89,6 +89,11 @@
     <p class="mut">Dá para corrigir sem carregar a turma, identificando os alunos pelo número da chamada. Depois é só enviar os resultados para a extensão.</p>
     <div class="row"><input id="avulsaQtd" type="number" min="1" max="60" placeholder="Nº de alunos"><button class="sec" id="btnAvulsa">Criar turma avulsa</button></div>
   </div>
+  <div class="card">
+    <h2>Problemas ou app desatualizado?</h2>
+    <p class="mut">Se o app travar, ficar lento ou não mostrar uma atualização nova, toque no botão abaixo. Isso NÃO apaga os dados das suas turmas — só limpa a versão guardada do programa no celular.</p>
+    <button class="sec" id="btnLimparCache">🧹 Limpar cache do app</button>
+  </div>
   <footer>Os dados dos alunos ficam só neste celular. Nada é enviado para servidor.</footer>
 </section>
 
@@ -485,6 +490,24 @@ $('btnShare').onclick = async () => { if (navigator.share) { try { await navigat
 $('btnVoltarTurma').onclick = () => { renderTurma(); show('scrTurma'); };
 $('btnVoltarInicio').onclick = () => { renderRecentes(); show('scrInicio'); };
 $('btnApagarTurma').onclick = () => { if (confirm('Apagar todos os dados desta turma neste celular?')) { LS.del('bf:t:'+T.turma.k); T = null; renderRecentes(); show('scrInicio'); } };
+
+// ---------- limpar cache do app (não mexe nos dados das turmas) ----------
+$('btnLimparCache').onclick = async () => {
+  if (!confirm('Isso vai limpar a versão guardada do app e recarregar a página. Os dados das suas turmas NÃO serão apagados. Continuar?')) return;
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) await r.unregister();
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      for (const k of keys) await caches.delete(k);
+    }
+  } catch (e) {
+    console.error('Erro ao limpar cache:', e);
+  }
+  location.reload(true);
+};
 
 // ---------- turma avulsa ----------
 $('btnAvulsa').onclick = () => {
