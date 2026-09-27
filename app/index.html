@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>Bloco Fácil – Corretor</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<style>
+  :root{--pri:#0f766e;--pri2:#115e59;--bg:#f4f7f6;--card:#fff;--tx:#1f2937;--mut:#6b7280;--ok:#15803d;--bad:#b91c1c;--warn:#b45309;--line:#e5e7eb}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:16px}
+  header{background:var(--pri);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+  header h1{font-size:18px;margin:0;flex:1}
+  header small{opacity:.85;font-size:12px}
+  main{max-width:640px;margin:0 auto;padding:12px 12px 90px}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin:10px 0;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  h2{font-size:17px;margin:0 0 8px}
+  p{margin:6px 0;line-height:1.4}
+  .mut{color:var(--mut);font-size:14px}
+  button{font:inherit;border:0;border-radius:10px;padding:12px 14px;background:var(--pri);color:#fff;font-weight:600;cursor:pointer}
+  button.sec{background:#e6f2f0;color:var(--pri2)}
+  button.danger{background:#fde8e8;color:var(--bad)}
+  button.big{width:100%;padding:15px;font-size:17px;margin:6px 0}
+  button:disabled{opacity:.5}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .row>*{flex:1}
+  input,select{font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;width:100%;background:#fff}
+  .hidden{display:none!important}
+  .al{display:flex;align-items:center;gap:10px;padding:11px 6px;border-bottom:1px solid var(--line);cursor:pointer}
+  .al:last-child{border-bottom:0}
+  .al .n{width:30px;text-align:right;color:var(--mut);font-variant-numeric:tabular-nums}
+  .al .nm{flex:1;font-size:15px}
+  .chip{font-size:12px;padding:4px 8px;border-radius:99px;background:#eef2f1;color:var(--mut);white-space:nowrap}
+  .chip.ok{background:#dcfce7;color:var(--ok)}
+  .al .mini{padding:6px 9px;font-size:12px;border-radius:8px}
+  .chip.f{background:#fef3c7;color:var(--warn)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
+  .q{display:flex;align-items:center;gap:4px;padding:4px;border-radius:8px;border:1px solid var(--line)}
+  .q b{width:24px;font-size:13px;color:var(--mut);text-align:right}
+  .q span{width:22px;height:22px;border-radius:50%;border:1.5px solid #9ca3af;font-size:11px;display:flex;align-items:center;justify-content:center;color:#6b7280;cursor:pointer;user-select:none}
+  .q span.on{background:#1e3a8a;border-color:#1e3a8a;color:#fff}
+  .q.certo{background:#f0fdf4;border-color:#bbf7d0}
+  .q.errado{background:#fef2f2;border-color:#fecaca}
+  .q.alerta{background:#fffbeb;border-color:#f59e0b;box-shadow:0 0 0 1px #f59e0b}
+  .disc-h{font-weight:700;margin:12px 0 6px;display:flex;justify-content:space-between}
+  .tot{display:flex;gap:8px;margin:8px 0}
+  .tot div{flex:1;background:#f0fdfa;border-radius:10px;padding:10px;text-align:center}
+  .tot b{display:block;font-size:26px;color:var(--pri2)}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:6}
+  .bar button{flex:1}
+  .msg{padding:10px 12px;border-radius:10px;margin:8px 0;font-size:15px}
+  .msg.err{background:#fef2f2;color:var(--bad)}
+  .msg.ok{background:#f0fdf4;color:var(--ok)}
+  .msg.inf{background:#eff6ff;color:#1e40af}
+  #qrBox{display:flex;justify-content:center;padding:8px;background:#fff}
+  #qrBox img,#qrBox canvas{width:100%;max-width:340px;height:auto;image-rendering:pixelated}
+  video{width:100%;border-radius:10px;background:#000}
+  .spin{display:inline-block;width:18px;height:18px;border:3px solid #cde;border-top-color:var(--pri);border-radius:50%;animation:s 1s linear infinite;vertical-align:middle}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .disc-ed{display:grid;grid-template-columns:1fr 64px 64px 36px;gap:6px;align-items:center;margin:4px 0}
+  .disc-ed button{padding:8px}
+  .prog{height:6px;background:#e5e7eb;border-radius:9px;overflow:hidden;margin:6px 0}
+  .prog i{display:block;height:100%;background:var(--pri)}
+  footer{text-align:center;color:var(--mut);font-size:12px;margin:24px 0}
+</style>
+</head>
+<body>
+<header>
+  <div style="font-size:22px">✅</div>
+  <h1>Bloco Fácil<br><small>Corretor gratuito da Prova de Bloco</small></h1>
+</header>
+<main>
+
+<!-- INÍCIO -->
+<section id="scrInicio">
+  <div class="card">
+    <h2>Comece pela extensão no computador</h2>
+    <p>No SIAP, abra a tela da Prova de Bloco da turma e clique em <b>“Corrigir pelo celular”</b> no quadro do Bloco Fácil. Aponte a câmera do celular para o QR Code que aparecer.</p>
+    <button class="big" id="btnScanTurma">📷 Ler QR da turma</button>
+    <div id="scanBox" class="hidden"><video id="vid" playsinline muted></video><p class="mut">Aponte para o QR Code na tela do computador.</p><button class="sec big" id="btnScanStop">Cancelar</button></div>
+  </div>
+  <div class="card" id="cardRecentes"></div>
+  <div class="card">
+    <h2>Sem computador agora?</h2>
+    <p class="mut">Dá para corrigir sem carregar a turma, identificando os alunos pelo número da chamada. Depois é só enviar os resultados para a extensão.</p>
+    <div class="row"><input id="avulsaQtd" type="number" min="1" max="60" placeholder="Nº de alunos"><button class="sec" id="btnAvulsa">Criar turma avulsa</button></div>
+  </div>
+  <footer>Os dados dos alunos ficam só neste celular. Nada é enviado para servidor.</footer>
+</section>
+
+<!-- TURMA -->
+<section id="scrTurma" class="hidden">
+  <div class="card">
+    <h2 id="tTitulo"></h2>
+    <p class="mut" id="tSub"></p>
+    <div class="prog"><i id="tProg"></i></div>
+    <p class="mut" id="tProgTx"></p>
+  </div>
+  <div class="card" id="cardGab"></div>
+  <div class="card" id="cardAlunos"><h2>Alunos</h2><p class="mut">Toque no aluno, depois fotografe o cartão dele.</p><div id="listaAlunos"></div></div>
+  <div class="card">
+    <button class="sec big" id="btnVoltarInicio">↩ Outras turmas</button>
+    <button class="danger big" id="btnApagarTurma">🗑 Apagar dados desta turma</button>
+  </div>
+</section>
+
+<!-- GABARITO -->
+<section id="scrGab" class="hidden">
+  <div class="card">
+    <h2>Disciplinas do bloco</h2>
+    <p class="mut">Quais questões são de cada disciplina (confira no gabarito oficial).</p>
+    <div id="discEd"></div>
+    <button class="sec" id="btnAddDisc" style="margin-top:6px">+ Disciplina</button>
+  </div>
+  <div class="card">
+    <h2>Gabarito</h2>
+    <p class="mut">Fotografe o gabarito oficial (impresso ou na tela) ou toque nas letras para marcar.</p>
+    <button class="big" id="btnFotoGab">📷 Fotografar gabarito</button>
+    <button class="sec big" id="btnArqGab">📄 Escolher arquivo (PDF ou imagem)</button>
+    <div id="gabMsg"></div>
+    <div id="gabGrid"></div>
+  </div>
+</section>
+
+<!-- REVISÃO -->
+<section id="scrRev" class="hidden">
+  <div class="card">
+    <h2 id="rNome"></h2>
+    <div id="rMsg"></div>
+    <div class="tot" id="rTot"></div>
+    <p class="mut">Confira. Questões em <b style="color:#b45309">amarelo</b> ficaram em branco, com duas marcas ou com leitura duvidosa. Toque numa letra para corrigir.</p>
+    <div id="rGrid"></div>
+  </div>
+</section>
+
+<!-- ENVIAR -->
+<section id="scrEnviar" class="hidden">
+  <div class="card">
+    <h2>Enviar para o computador</h2>
+    <p>Na extensão, clique em <b>“Receber correções”</b> e depois em <b>“Ler QR pela webcam”</b>, mostrando este QR para a câmera do computador.</p>
+    <div id="qrBox"></div>
+    <p class="mut" id="envResumo"></p>
+  </div>
+  <div class="card">
+    <h2>Computador sem webcam?</h2>
+    <p class="mut">Copie o código e mande para você mesmo (WhatsApp Web, e-mail…). No computador, cole em <b>“Colar código”</b> na extensão.</p>
+    <div class="row"><button class="sec" id="btnCopiar">📋 Copiar código</button><button class="sec" id="btnShare">📤 Compartilhar</button></div>
+  </div>
+</section>
+
+<input type="file" id="fileCam" accept="image/*" capture="environment" class="hidden">
+<input type="file" id="fileArq" accept="application/pdf,image/*" class="hidden">
+</main>
+
+<div class="bar hidden" id="barTurma"><button class="sec" id="btnGab">📝 Gabarito</button><button id="btnEnviar">📤 Enviar ao PC</button></div>
+<div class="bar hidden" id="barRev"><button class="sec" id="btnRefazer">📷 Tirar de novo</button><button id="btnConfirmar">✔ Confirmar</button></div>
+<div class="bar hidden" id="barVoltar"><button class="sec" id="btnVoltarTurma">↩ Voltar para a turma</button></div>
+
+<script src="omr.js"></script>
+<script src="bfcodec.js"></script>
+<script src="qrcode.js"></script>
+<script src="jsQR.js"></script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const LS = { get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ alert('Não consegui salvar neste celular: '+e.message); } }, del(k){ try{ localStorage.removeItem(k); }catch(e){} } };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let T = null;          // estado da turma atual
+let atual = null;      // aluno em correção
+let leitura = null;    // resultado do OMR em revisão
+let fotoPara = null;   // 'aluno' | 'gab'
+
+function show(id){
+  for (const s of ['scrInicio','scrTurma','scrGab','scrRev','scrEnviar']) $(s).classList.toggle('hidden', s !== id);
+  $('barTurma').classList.toggle('hidden', id !== 'scrTurma');
+  $('barRev').classList.toggle('hidden', id !== 'scrRev');
+  $('barVoltar').classList.toggle('hidden', !(id === 'scrGab' || id === 'scrEnviar'));
+  window.scrollTo(0,0);
+}
+
+// ---------- turmas guardadas ----------
+function keysTurmas(){ const out=[]; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.startsWith('bf:t:')) out.push(k); } }catch(e){} return out; }
+function salvar(){ T.atualizado = Date.now(); LS.set('bf:t:'+T.turma.k, T); }
+function renderRecentes(){
+  const ks = keysTurmas().map(k => LS.get(k)).filter(Boolean).sort((a,b)=>(b.atualizado||0)-(a.atualizado||0));
+  const c = $('cardRecentes');
+  if (!ks.length){ c.classList.add('hidden'); return; }
+  c.classList.remove('hidden');
+  c.innerHTML = '<h2>Turmas neste celular</h2>' + ks.map(t => {
+    const feitos = Object.keys(t.res||{}).length;
+    return `<div class="al" data-k="${esc(t.turma.k)}"><span class="nm"><b>${esc(tituloTurma(t.turma))}</b><br><span class="mut">${esc(t.turma.av||'')} · ${feitos}/${t.turma.al.length} corrigidos</span></span><span class="chip">abrir ›</span></div>`;
+  }).join('');
+  c.querySelectorAll('.al').forEach(el => el.onclick = () => abrirTurma(LS.get('bf:t:'+el.dataset.k)));
+}
+function tituloTurma(t){ return [t.ser, t.tur && ('Turma '+t.tur), t.trn].filter(Boolean).join(' · ') || 'Turma'; }
+
+// ---------- disciplinas padrão pelo nome da avaliação ----------
+function discsPadrao(turma){
+  const q = +turma.q || 0, av = (turma.av||'').toUpperCase();
+  if (/\bCH\b|HUMANAS/.test(av) && q) return [{nome:'GEOGRAFIA',de:1,ate:q},{nome:'HISTÓRIA',de:q+1,ate:2*q}];
+  if (/\bMAT/.test(av) && q) return [{nome:'MATEMÁTICA',de:1,ate:q}];
+  if (/\bCN\b|NATUREZA/.test(av) && q) return [{nome:'CIÊNCIAS DA NATUREZA',de:1,ate:q}];
+  return [{nome: turma.d || 'DISCIPLINA', de:1, ate: q || 20}];
+}
+function totalQ(){ return T.gab.discs.reduce((m,d)=>Math.max(m, +d.ate||0), 0); }
+
+function novaTurma(turma){
+  const existente = LS.get('bf:t:'+turma.k);
+  if (existente){ existente.turma = Object.assign(existente.turma, turma); return existente; }
+  return { turma, gab:{ discs: discsPadrao(turma), key:'' }, res:{} };
+}
+
+async function carregarDeHash(){
+  const h = location.hash.slice(1);
+  if (!h.startsWith('t=')) return false;
+  try{
+    const turma = await BFCodec.unpack(decodeURIComponent(h.slice(2)));
+    history.replaceState(null, '', location.pathname);
+    abrirTurma(novaTurma(turma)); salvar();
+    return true;
+  }catch(e){ alert('Não consegui abrir o QR da turma: '+e.message); return false; }
+}
+
+// ---------- tela da turma ----------
+function abrirTurma(t){ T = t; renderTurma(); show('scrTurma'); }
+function acertos(ans){
+  const out = {};
+  for (const d of T.gab.discs){
+    let n = 0;
+    for (let i = d.de; i <= d.ate; i++) if (ans[i-1] && ans[i-1] === T.gab.key[i-1]) n++;
+    out[d.nome] = n;
+  }
+  return out;
+}
+function renderTurma(){
+  const t = T.turma;
+  $('tTitulo').textContent = tituloTurma(t);
+  $('tSub').textContent = [t.av, t.bim].filter(Boolean).join(' · ');
+  const n = t.al.length, feitos = Object.keys(T.res).length;
+  $('tProg').style.width = (n ? 100*feitos/n : 0)+'%';
+  $('tProgTx').textContent = `${feitos} de ${n} alunos corrigidos`;
+  const gabOk = T.gab.key && T.gab.key.length >= totalQ() && !/[-*]/.test(T.gab.key.slice(0,totalQ()));
+  $('cardGab').innerHTML = gabOk
+    ? `<h2>Gabarito ✔</h2><p class="mut">${T.gab.discs.map(d=>`${esc(d.nome)}: ${d.de}–${d.ate}`).join(' · ')}</p>`
+    : `<div class="msg inf"><b>Primeiro passo:</b> cadastre o gabarito desta prova.</div><button class="big" onclick="abrirGab()">📝 Cadastrar gabarito</button>`;
+  $('listaAlunos').innerHTML = t.al.map(([num, nome]) => {
+    const r = T.res[num];
+    let chip = '<span class="chip">corrigir ›</span>';
+    if (r && r.st === 'F') chip = '<span class="chip f">faltou</span>';
+    else if (r) chip = '<span class="chip ok">' + T.gab.discs.map(d => `${esc(d.nome.slice(0,3))} ${r.ac[d.nome] ?? '–'}`).join(' · ') + '</span>';
+    const fbtn = r ? `<button class="sec mini" data-x="${esc(num)}" title="limpar">↺</button>` : `<button class="sec mini" data-f="${esc(num)}" title="faltou">Faltou</button>`;
+    return `<div class="al" data-n="${esc(num)}"><span class="n">${esc(num)}</span><span class="nm">${esc(nome)}</span>${chip}${fbtn}</div>`;
+  }).join('');
+  $('listaAlunos').querySelectorAll('.al').forEach(el => el.onclick = () => escolherAluno(el.dataset.n));
+  $('listaAlunos').querySelectorAll('[data-f]').forEach(b => b.onclick = ev => { ev.stopPropagation(); T.res[b.dataset.f] = { st:'F' }; salvar(); renderTurma(); });
+  $('listaAlunos').querySelectorAll('[data-x]').forEach(b => b.onclick = ev => { ev.stopPropagation(); if (confirm('Limpar a correção deste aluno?')) { delete T.res[b.dataset.x]; salvar(); renderTurma(); } });
+}
+function escolherAluno(num){
+  if (!T.gab.key || T.gab.key.length < totalQ()){ alert('Cadastre o gabarito antes de corrigir.'); return abrirGab(); }
+  atual = T.turma.al.find(a => String(a[0]) === String(num));
+  if (T.res[num] && !confirm(`${atual[0]} - ${atual[1]} já foi corrigido. Fotografar de novo?`)) return;
+  fotoPara = 'aluno'; $('fileCam').value=''; $('fileCam').click();
+}
+
+// ---------- foto -> OMR ----------
+async function lerArquivo(file){
+  // Fotos de câmera real podem vir com 4000x3000px ou mais (12MP+). Decodificar isso
+  // inteiro na memória derruba o navegador em celulares mais fracos (erro "insuficiência
+  // de memória"). Por isso pedimos ao próprio createImageBitmap para já reduzir durante
+  // a decodificação (resizeWidth/resizeHeight), em vez de decodificar tudo e só depois
+  // desenhar reduzido num canvas.
+  const MAX = 1600;
+  // Descobre as dimensões reais sem decodificar todos os pixels (leitura leve via <img>),
+  // para pedir ao createImageBitmap o redimensionamento certo (largura OU altura, o que
+  // for o lado maior) sem distorcer nem sobrar borda vazia.
+  let resizeOpt = {};
+  try {
+    const url = URL.createObjectURL(file);
+    const dim = await new Promise((ok, err) => {
+      const im = new Image();
+      im.onload = () => ok({ w: im.naturalWidth, h: im.naturalHeight });
+      im.onerror = err;
+      im.src = url;
+    });
+    URL.revokeObjectURL(url);
+    if (dim.w > MAX || dim.h > MAX) resizeOpt = dim.w >= dim.h ? { resizeWidth: MAX } : { resizeHeight: MAX };
+  } catch (e) { /* segue sem pré-medir; tentativas abaixo cobrem o resto */ }
+  const tentativas = [
+    Object.assign({ imageOrientation: 'from-image', resizeQuality: 'medium' }, resizeOpt),
+    Object.assign({ resizeQuality: 'medium' }, resizeOpt),
+    { imageOrientation: 'from-image', resizeWidth: MAX, resizeHeight: MAX, resizeQuality: 'medium' },
+    { imageOrientation: 'from-image' },
+    {}
+  ];
+  let bmp = null;
+  for (const opt of tentativas){
+    try { bmp = await createImageBitmap(file, opt); break; }
+    catch(e){ /* tenta a próxima opção */ }
+  }
+  if (!bmp) throw new Error('Não foi possível abrir essa foto (memória insuficiente). Tente tirar a foto de novo, mais de longe, ou com resolução menor.');
+  const k = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
+  const w = Math.round(bmp.width*k), h = Math.round(bmp.height*k);
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(bmp, 0, 0, w, h);
+  if (bmp.close) bmp.close();
+  return ctx.getImageData(0, 0, w, h);
+}
+$('fileCam').onchange = async (ev) => {
+  const f = ev.target.files[0]; if (!f) return;
+  if (fotoPara === 'gab') {
+    try { const img = await lerArquivo(f); return lerGabarito([{ img, pag: null }]); }
+    catch(e){ alert(e && e.message ? e.message : 'Não foi possível abrir essa foto.'); return; }
+  }
+  // cartão do aluno
+  $('rNome').textContent = `${atual[0]} - ${atual[1]}`;
+  $('rMsg').innerHTML = '<div class="msg inf"><span class="spin"></span> Lendo o cartão…</div>';
+  $('rTot').innerHTML = ''; $('rGrid').innerHTML = '';
+  show('scrRev');
+  let img;
+  try { img = await lerArquivo(f); }
+  catch(e){ $('rMsg').innerHTML = `<div class="msg err">${esc(e && e.message ? e.message : 'Não foi possível abrir essa foto.')}</div>`; return; }
+  setTimeout(() => {
+    const r = BlocoOMR.readCard(img, totalQ());
+    if (!r.ok){ leitura = null; $('rMsg').innerHTML = `<div class="msg err">${esc(r.erro)}</div>`; return; }
+    leitura = { ans: r.answers.slice(), conf: r.conf };
+    $('rMsg').innerHTML = '';
+    renderRev();
+  }, 30);
+};
+
+function qCell(i, letra, cls, onpick){
+  const div = document.createElement('div'); div.className = 'q ' + cls;
+  div.innerHTML = `<b>${String(i).padStart(2,'0')}</b>` + 'ABCD'.split('').map(L => `<span class="${L===letra?'on':''}" data-l="${L}">${L}</span>`).join('');
+  div.querySelectorAll('span').forEach(s => s.onclick = () => onpick(s.dataset.l === letra ? '-' : s.dataset.l));
+  return div;
+}
+function renderRev(){
+  const ans = leitura.ans, ac = acertos(ans);
+  $('rTot').innerHTML = T.gab.discs.map(d => `<div>${esc(d.nome)}<b>${ac[d.nome]}</b><span class="mut">de ${d.ate-d.de+1}</span></div>`).join('');
+  const g = $('rGrid'); g.innerHTML = '';
+  for (const d of T.gab.discs){
+    const h = document.createElement('div'); h.className='disc-h'; h.innerHTML = `<span>${esc(d.nome)}</span><span class="mut">${ac[d.nome]} acertos</span>`; g.appendChild(h);
+    const grid = document.createElement('div'); grid.className = 'grid';
+    for (let i = d.de; i <= d.ate; i++){
+      const a = ans[i-1] || '-', c = leitura.conf[i-1] ?? 1;
+      const cls = (a === '-' || a === '*' || c < 0.35) ? 'alerta' : (a === T.gab.key[i-1] ? 'certo' : 'errado');
+      grid.appendChild(qCell(i, a, cls, L => { leitura.ans[i-1] = L; leitura.conf[i-1] = 1; renderRev(); }));
+    }
+    g.appendChild(grid);
+  }
+}
+$('btnRefazer').onclick = () => { fotoPara = 'aluno'; $('fileCam').value=''; $('fileCam').click(); };
+$('btnConfirmar').onclick = () => {
+  if (!leitura) return alert('Tire a foto do cartão primeiro.');
+  const num = atual[0];
+  T.res[num] = { st:'ok', ans: leitura.ans.join(''), ac: acertos(leitura.ans) };
+  salvar(); leitura = null;
+  // próximo aluno pendente
+  const idx = T.turma.al.findIndex(a => a[0] === num);
+  const prox = T.turma.al.slice(idx+1).find(a => !T.res[a[0]]);
+  renderTurma(); show('scrTurma');
+  if (prox && confirm(`Salvo! Corrigir o próximo?\n\n${prox[0]} - ${prox[1]}`)) { atual = prox; fotoPara='aluno'; $('fileCam').value=''; $('fileCam').click(); }
+};
+
+// ---------- gabarito ----------
+function abrirGab(){ renderDiscEd(); renderGabGrid(); $('gabMsg').innerHTML=''; show('scrGab'); }
+window.abrirGab = abrirGab;
+function renderDiscEd(){
+  const box = $('discEd'); box.innerHTML = '<div class="disc-ed mut" style="font-size:12px"><span>Disciplina (como no SIAP)</span><span>de</span><span>até</span><span></span></div>';
+  T.gab.discs.forEach((d, i) => {
+    const r = document.createElement('div'); r.className = 'disc-ed';
+    r.innerHTML = `<input value="${esc(d.nome)}"><input type="number" min="1" value="${d.de}"><input type="number" min="1" value="${d.ate}"><button class="danger" title="remover">✕</button>`;
+    const [n, de, ate, del] = r.children;
+    n.onchange = () => { d.nome = n.value.trim().toUpperCase(); salvar(); };
+    de.onchange = () => { d.de = +de.value; salvar(); renderGabGrid(); };
+    ate.onchange = () => { d.ate = +ate.value; salvar(); renderGabGrid(); };
+    del.onclick = () => { if (T.gab.discs.length > 1){ T.gab.discs.splice(i,1); salvar(); renderDiscEd(); renderGabGrid(); } };
+    box.appendChild(r);
+  });
+}
+$('btnAddDisc').onclick = () => { const u = totalQ(); T.gab.discs.push({ nome:'DISCIPLINA', de:u+1, ate:u+10 }); salvar(); renderDiscEd(); renderGabGrid(); };
+function renderGabGrid(){
+  const n = totalQ(); let key = (T.gab.key || '').padEnd(n, '-').slice(0, n);
+  const g = $('gabGrid'); g.innerHTML = '';
+  for (const d of T.gab.discs){
+    const h = document.createElement('div'); h.className='disc-h'; h.textContent = d.nome; g.appendChild(h);
+    const grid = document.createElement('div'); grid.className='grid';
+    for (let i = d.de; i <= d.ate; i++){
+      const L = key[i-1];
+      grid.appendChild(qCell(i, L, (L === '-' || L === '*') ? 'alerta' : '', nl => { const a = key.split(''); a[i-1] = nl; T.gab.key = a.join(''); salvar(); renderGabGrid(); }));
+    }
+    g.appendChild(grid);
+  }
+}
+$('btnFotoGab').onclick = () => { fotoPara = 'gab'; $('fileCam').value=''; $('fileCam').click(); };
+$('btnArqGab').onclick = () => { $('fileArq').value=''; $('fileArq').click(); };
+$('fileArq').onchange = async (ev) => {
+  const f = ev.target.files[0]; if (!f) return;
+  $('gabMsg').innerHTML = '<div class="msg inf"><span class="spin"></span> Abrindo arquivo…</div>';
+  try {
+    if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) lerGabarito(await paginasPdf(f));
+    else lerGabarito([{ img: await lerArquivo(f), pag: null }]);
+  } catch (e) { $('gabMsg').innerHTML = `<div class="msg err">Não consegui abrir o arquivo: ${esc(e.message)}</div>`; }
+};
+
+// carrega o pdf.js só quando precisa
+function carregarPdfJs(){
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  return new Promise((ok, erro) => {
+    const s = document.createElement('script'); s.src = 'pdf.min.js';
+    s.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js'; ok(pdfjsLib); };
+    s.onerror = () => erro(new Error('leitor de PDF indisponível'));
+    document.head.appendChild(s);
+  });
+}
+async function paginasPdf(file){
+  const lib = await carregarPdfJs();
+  const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  const out = [];
+  for (let n = 1; n <= Math.min(pdf.numPages, 12); n++){
+    const page = await pdf.getPage(n);
+    const v0 = page.getViewport({ scale: 1 }), k = 1400 / Math.max(v0.width, v0.height);
+    const vp = page.getViewport({ scale: k });
+    const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    let titulo = '';
+    try { const tc = await page.getTextContent(); titulo = tc.items.map(i => i.str).join(' ').replace(/\s+/g, ' ').match(/GABARITO[^|]{0,40}/i)?.[0] || ''; } catch(e){}
+    out.push({ img: ctx.getImageData(0, 0, cv.width, cv.height), pag: n, total: pdf.numPages, titulo: titulo.trim() });
+  }
+  return out;
+}
+function lerGabarito(paginas){
+  $('gabMsg').innerHTML = '<div class="msg inf"><span class="spin"></span> Lendo gabarito…</div>';
+  setTimeout(() => {
+    const bons = [];
+    let erro = '';
+    for (const p of paginas){
+      const r = BlocoOMR.readCard(p.img, totalQ());
+      if (r.ok) bons.push({ ...p, r }); else erro = r.erro;
+    }
+    if (!bons.length){
+      const extra = paginas.length > 1 ? ` (tentei ${paginas.length} páginas)` : '';
+      $('gabMsg').innerHTML = `<div class="msg err">${esc(erro)}${extra}. Confira se as disciplinas acima somam o total de questões da prova.</div>`;
+      return;
+    }
+    const aplicar = b => {
+      T.gab.key = b.r.answers.join(''); salvar();
+      const origem = b.pag ? ` (página ${b.pag}${b.titulo ? ' – ' + esc(b.titulo) : ''})` : '';
+      $('gabMsg').innerHTML = `<div class="msg ok">Gabarito lido${origem}. Confira as ${b.r.answers.length} respostas abaixo.</div>`;
+      renderGabGrid();
+    };
+    if (bons.length === 1) return aplicar(bons[0]);
+    // PDF com vários gabaritos: professor escolhe a página
+    $('gabMsg').innerHTML = '<div class="msg inf">Este PDF tem mais de um gabarito. Qual é o desta turma?</div>' +
+      bons.map((b, i) => `<button class="sec big" data-i="${i}">Página ${b.pag}${b.titulo ? ' – ' + esc(b.titulo) : ''}</button>`).join('');
+    $('gabMsg').querySelectorAll('button').forEach(bt => bt.onclick = () => aplicar(bons[+bt.dataset.i]));
+  }, 30);
+}
+$('btnGab').onclick = abrirGab;
+
+// ---------- enviar ----------
+$('btnEnviar').onclick = async () => {
+  const feitos = Object.entries(T.res);
+  if (!feitos.length) return alert('Nenhum aluno corrigido ainda.');
+  const r = {};
+  for (const [num, v] of feitos) r[num] = v.st === 'F' ? 'F' : T.gab.discs.map(d => v.ac[d.nome] ?? 0);
+  const obj = { v:1, k: T.turma.k, ds: T.gab.discs.map(d => d.nome), q: T.gab.discs.map(d => d.ate - d.de + 1), r };
+  const code = BFCodec.RESULT_PREFIX + await BFCodec.pack(obj);
+  T.ultimoCodigo = code; salvar();
+  const qr = qrcode(0, 'L'); qr.addData(code); qr.make();
+  $('qrBox').innerHTML = qr.createImgTag(6, 12);
+  const falt = feitos.filter(([,v]) => v.st === 'F').length;
+  $('envResumo').textContent = `${feitos.length - falt} corrigidos, ${falt} faltas · ${T.gab.discs.map(d=>d.nome).join(' e ')}`;
+  show('scrEnviar');
+};
+$('btnCopiar').onclick = async () => { try { await navigator.clipboard.writeText(T.ultimoCodigo); alert('Código copiado!'); } catch(e){ prompt('Copie o código:', T.ultimoCodigo); } };
+$('btnShare').onclick = async () => { if (navigator.share) { try { await navigator.share({ title:'Bloco Fácil', text: T.ultimoCodigo }); } catch(e){} } else $('btnCopiar').click(); };
+$('btnVoltarTurma').onclick = () => { renderTurma(); show('scrTurma'); };
+$('btnVoltarInicio').onclick = () => { renderRecentes(); show('scrInicio'); };
+$('btnApagarTurma').onclick = () => { if (confirm('Apagar todos os dados desta turma neste celular?')) { LS.del('bf:t:'+T.turma.k); T = null; renderRecentes(); show('scrInicio'); } };
+
+// ---------- turma avulsa ----------
+$('btnAvulsa').onclick = () => {
+  const n = +$('avulsaQtd').value; if (!(n > 0 && n <= 60)) return alert('Informe o número de alunos (1 a 60).');
+  const k = 'avulsa-' + Date.now().toString(36);
+  const al = Array.from({length:n}, (_, i) => [String(i+1), 'Aluno nº ' + (i+1)]);
+  abrirTurma(novaTurma({ v:1, k, ser:'Turma avulsa', al, q:15, av:'' })); salvar();
+};
+
+// ---------- ler QR da turma com a câmera do app ----------
+let stream = null, scanning = false;
+$('btnScanTurma').onclick = async () => {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+  } catch(e){ return alert('Não consegui abrir a câmera. Você também pode ler o QR com a câmera normal do celular.'); }
+  $('scanBox').classList.remove('hidden'); $('btnScanTurma').classList.add('hidden');
+  const v = $('vid'); v.srcObject = stream; await v.play(); scanning = true;
+  const cv = document.createElement('canvas'), ctx = cv.getContext('2d', { willReadFrequently:true });
+  const tick = async () => {
+    if (!scanning) return;
+    if (v.videoWidth){
+      cv.width = v.videoWidth; cv.height = v.videoHeight; ctx.drawImage(v, 0, 0);
+      const d = ctx.getImageData(0, 0, cv.width, cv.height);
+      const code = jsQR(d.data, d.width, d.height, { inversionAttempts:'dontInvert' });
+      if (code && code.data){
+        const m = code.data.match(/#t=(.+)$/);
+        if (m){ pararScan(); location.hash = 't=' + m[1]; await carregarDeHash(); return; }
+      }
+    }
+    requestAnimationFrame(tick);
+  };
+  tick();
+};
+function pararScan(){ scanning = false; if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; $('scanBox').classList.add('hidden'); $('btnScanTurma').classList.remove('hidden'); }
+$('btnScanStop').onclick = pararScan;
+
+// ---------- início ----------
+(async () => {
+  if (!(await carregarDeHash())) { renderRecentes(); show('scrInicio'); }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+window.addEventListener('hashchange', carregarDeHash);
+</script>
+</body>
+</html>
