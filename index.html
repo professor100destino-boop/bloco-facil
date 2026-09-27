@@ -267,25 +267,62 @@ function escolherAluno(num){
 
 // ---------- foto -> OMR ----------
 async function lerArquivo(file){
-  let bmp;
-  try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
-  catch(e){ bmp = await createImageBitmap(file); }
-  const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+  // Fotos de câmera real podem vir com 4000x3000px ou mais (12MP+). Decodificar isso
+  // inteiro na memória derruba o navegador em celulares mais fracos (erro "insuficiência
+  // de memória"). Por isso pedimos ao próprio createImageBitmap para já reduzir durante
+  // a decodificação (resizeWidth/resizeHeight), em vez de decodificar tudo e só depois
+  // desenhar reduzido num canvas.
+  const MAX = 1600;
+  // Descobre as dimensões reais sem decodificar todos os pixels (leitura leve via <img>),
+  // para pedir ao createImageBitmap o redimensionamento certo (largura OU altura, o que
+  // for o lado maior) sem distorcer nem sobrar borda vazia.
+  let resizeOpt = {};
+  try {
+    const url = URL.createObjectURL(file);
+    const dim = await new Promise((ok, err) => {
+      const im = new Image();
+      im.onload = () => ok({ w: im.naturalWidth, h: im.naturalHeight });
+      im.onerror = err;
+      im.src = url;
+    });
+    URL.revokeObjectURL(url);
+    if (dim.w > MAX || dim.h > MAX) resizeOpt = dim.w >= dim.h ? { resizeWidth: MAX } : { resizeHeight: MAX };
+  } catch (e) { /* segue sem pré-medir; tentativas abaixo cobrem o resto */ }
+  const tentativas = [
+    Object.assign({ imageOrientation: 'from-image', resizeQuality: 'medium' }, resizeOpt),
+    Object.assign({ resizeQuality: 'medium' }, resizeOpt),
+    { imageOrientation: 'from-image', resizeWidth: MAX, resizeHeight: MAX, resizeQuality: 'medium' },
+    { imageOrientation: 'from-image' },
+    {}
+  ];
+  let bmp = null;
+  for (const opt of tentativas){
+    try { bmp = await createImageBitmap(file, opt); break; }
+    catch(e){ /* tenta a próxima opção */ }
+  }
+  if (!bmp) throw new Error('Não foi possível abrir essa foto (memória insuficiente). Tente tirar a foto de novo, mais de longe, ou com resolução menor.');
+  const k = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
   const w = Math.round(bmp.width*k), h = Math.round(bmp.height*k);
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
   const ctx = cv.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(bmp, 0, 0, w, h);
+  if (bmp.close) bmp.close();
   return ctx.getImageData(0, 0, w, h);
 }
 $('fileCam').onchange = async (ev) => {
   const f = ev.target.files[0]; if (!f) return;
-  if (fotoPara === 'gab') { const img = await lerArquivo(f); return lerGabarito([{ img, pag: null }]); }
+  if (fotoPara === 'gab') {
+    try { const img = await lerArquivo(f); return lerGabarito([{ img, pag: null }]); }
+    catch(e){ alert(e && e.message ? e.message : 'Não foi possível abrir essa foto.'); return; }
+  }
   // cartão do aluno
   $('rNome').textContent = `${atual[0]} - ${atual[1]}`;
   $('rMsg').innerHTML = '<div class="msg inf"><span class="spin"></span> Lendo o cartão…</div>';
   $('rTot').innerHTML = ''; $('rGrid').innerHTML = '';
   show('scrRev');
-  const img = await lerArquivo(f);
+  let img;
+  try { img = await lerArquivo(f); }
+  catch(e){ $('rMsg').innerHTML = `<div class="msg err">${esc(e && e.message ? e.message : 'Não foi possível abrir essa foto.')}</div>`; return; }
   setTimeout(() => {
     const r = BlocoOMR.readCard(img, totalQ());
     if (!r.ok){ leitura = null; $('rMsg').innerHTML = `<div class="msg err">${esc(r.erro)}</div>`; return; }
